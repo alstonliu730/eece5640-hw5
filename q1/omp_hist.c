@@ -6,7 +6,7 @@
 #include <math.h>
 
 #define NUM_BINS 32
-#define RANGE 10000
+#define RANGE 100000
 
 const int bin_size = RANGE / NUM_BINS;
 
