@@ -4,3 +4,17 @@
 *.ptx
 *.cubin
 *.fatbin
+
+*.o
+*.so
+*.a
+*.d
+*.dSYM
+
+*.out
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.idb

@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <cuda_runtime.h>
 
 #define NUM_BINS 32
 #define RANGE 100000

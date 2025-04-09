@@ -7,9 +7,9 @@
 
 N = (2**12 2**14 2**16 2**18 2**20)
 
-for n in ; do
+for n in N; do
     echo "Running with N = $n"
     OUTPUT = "q1_$n.out"
-    ~/eece5640-hw5/q1/q1a $n > $OUTPUT
+    ~/eece5640-hw5/q1/q1a $n &> $OUTPUT
     echo "-------------------------"
 done
