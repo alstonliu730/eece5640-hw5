@@ -3,8 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --time=00:30:00
 #SBATCH --job-name=alston_q1b
-#SBATCH --gres=gpu:p100:1
-#SBATCH --partition=courses-gpu
+#SBATCH --partition=courses
 
 N=(4096 16384 65536 262144 1048576)
 

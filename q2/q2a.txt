@@ -1,3 +1,0 @@
-Result of stencil operation (naive):
-n = 32
-Elapsed time: 249.036575 ms

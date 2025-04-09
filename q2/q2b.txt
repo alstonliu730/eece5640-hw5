@@ -1,3 +1,0 @@
-Result of stencil operation (tiled):
-n = 32
-Elapsed time: 37.604706 ms
