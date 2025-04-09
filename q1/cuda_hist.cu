@@ -13,34 +13,19 @@ const int bin_size = RANGE / NUM_BINS;
     }
 // Kernel function to compute histogram
 __global__ void histogram_kernel(int *data, int *histogram, int n) {
-    extern __shared__ int local_hist[];
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-    // get current thread index
-    int tid = threadIdx.x;
-    int idx = blockIdx.x * blockDim.x + threadIdx.x; // global thread index
-
-    // Initialize shared memory bins
-    for (int i = tid; i < NUM_BINS; i += blockDim.x) {
-        local_hist[i] = 0;
-    }
-
-    __syncthreads(); // synchronize threads in the block
-
-    // check if thread index is within bounds
     if (idx < n) {
-        int bin = data[idx] / (RANGE / NUM_BINS);
-        atomicAdd(&histogram[bin], 1);
-    }
+        int bin = data[bin] / bin_size;
+        if (bin >= NUM_BINS) {
+            bin = NUM_BINS - 1; // Ensure bin index is within bounds
+        }
 
-    __syncthreads(); // synchronize threads in the block
-
-    // write the local histogram to global memory
-    if (tid < NUM_BINS) {
-        atomicAdd(&histogram[tid], local_hist[tid]);
+        histogram[idx] = bin;
     }
 }
 
-int main(int argc, char**argv) {
+int main(int argc, char** argv) {
     // Check if the number of arguments is correct
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <number_of_samples>\n", argv[0]);
@@ -59,7 +44,7 @@ int main(int argc, char**argv) {
 
     // define host data
     int *h_data = (int *)malloc(size);
-    int *h_histogram = (int *)malloc(sizeof(int) * NUM_BINS);
+    int *h_histogram = (int *)calloc(num_samples, sizeof(int)); // initialize to 0
 
     // initialize host data
     srand(time(NULL)); // seed in host random number generator
@@ -69,26 +54,33 @@ int main(int argc, char**argv) {
 
     // define device data
     int *d_data, *d_histogram;
-    cudaMalloc(&d_data, size);
-    cudaMalloc(&d_histogram, size);
+    CUDA_CHECK(cudaMalloc(&d_data, size));
+    CUDA_CHECK(cudaMalloc(&d_histogram, size));
 
     // copy data from host to device
-    cudaMemcpy(d_data, h_data, size, cudaMemcpyHostToDevice);
-    cudaMemset(d_histogram, 0, size); // initialize histogram to 0
+    CUDA_CHECK(cudaMemcpy(d_data, h_data, size, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_histogram, h_histogram, size, cudaMemcpyHostToDevice));
 
     // Start benchmarking time
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventRecord(start);
+
     // define block and grid sizes
-    int threads = 512;
-    int blocks = (num_samples + threads - 1) / threads;
-    histogram_kernel<<<blocks, threads, NUM_BINS * sizeof(int)>>>(d_data, d_histogram, num_samples);
+    int threads = 1024; // number of threads per block
+    int blocks = (num_samples / threads) + 1; // number of blocks
+    histogram_kernel<<<blocks, threads>>>(d_data, d_histogram, num_samples);
+    CUDA_CHECK(cudaGetLastError()); // check for kernel launch errors
 
     // copy histogram from device to host
-    cudaMemcpy(h_histogram, d_histogram, size, cudaMemcpyDeviceToHost);
+    CUDA_CHECK(cudaMemcpy(h_histogram, d_histogram, size, cudaMemcpyDeviceToHost));
 
+    // reduce histogram
+    for(int i = 0; i < num_samples; i++) {
+        int bin = h_histogram[i];
+        h_histogram[bin]++;
+    }
     // Stop benchmarking time
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
