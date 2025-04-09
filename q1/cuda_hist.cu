@@ -1,10 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 
 #define NUM_BINS 32
 #define RANGE 100000
 
 const int bin_size = RANGE / NUM_BINS;
+
+double CLOCK() {
+    struct timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return (t.tv_sec * 1000) + (t.tv_nsec * 1e-6);
+}
+
 // CUDA error check macro
 #define CUDA_CHECK(err) \
     if (err != cudaSuccess) { \
@@ -62,13 +71,11 @@ int main(int argc, char** argv) {
     CUDA_CHECK(cudaMemcpy(d_histogram, h_histogram, NUM_BINS * sizeof(int), cudaMemcpyHostToDevice));
 
     // Start benchmarking time
-    cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-    cudaEventRecord(start);
+    double start, stop;
+    start = CLOCK();
 
     // define block and grid sizes
-    int threads = 1024; // number of threads per block
+    int threads = 512; // number of threads per block
     int blocks = (num_samples + threads - 1) / threads; // number of blocks
     histogram_kernel<<<blocks, threads>>>(d_data, d_histogram, num_samples);
     CUDA_CHECK(cudaGetLastError()); // check for kernel launch errors
@@ -77,12 +84,9 @@ int main(int argc, char** argv) {
     CUDA_CHECK(cudaMemcpy(h_histogram, d_histogram, NUM_BINS * sizeof(int), cudaMemcpyDeviceToHost));
 
     // Stop benchmarking time
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
+    stop = CLOCK();
 
-    float ms = 0;
-    cudaEventElapsedTime(&ms, start, stop);
-    printf("Time taken: %f ms\n", ms);
+    printf("Time taken: %f ms\n", stop - start);
     printf("Num. of Samples: %d\n", num_samples);
 
     // print histogram

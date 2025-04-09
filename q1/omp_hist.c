@@ -10,6 +10,12 @@
 
 const int bin_size = RANGE / NUM_BINS;
 
+double CLOCK() {
+    struct timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return (t.tv_sec * 1000) + (t.tv_nsec * 1e-6);
+}
+
 int main(int argc, char *argv[]) {
     // Check if the number of arguments is correct
     if (argc != 2) {
@@ -28,17 +34,17 @@ int main(int argc, char *argv[]) {
     int hist[NUM_BINS] = {0};
 
     // Initialize the random number generator
-    int seed = 0;
+    unsigned int seed = 0;
     int num = 0;
     
     // Benchmark parameters
     double start_time, end_time;
-    start_time = omp_get_wtime();
+    start_time = CLOCK();
 
     // Generate random numbers and fill the histogram
     #pragma omp parallel
     {
-        int seed = time(NULL) + omp_get_thread_num();
+        seed = time(NULL) + omp_get_thread_num();
 
         #pragma omp for reduction(+:hist[:NUM_BINS]) private (seed, num)
         for(int i = 0; i < num_samples; i++) {
@@ -61,7 +67,7 @@ int main(int argc, char *argv[]) {
     }
 
     // End the benchmark
-    end_time = omp_get_wtime();
+    end_time = CLOCK();
 
     // Print the histogram
     printf("Histogram:\n");
@@ -70,5 +76,6 @@ int main(int argc, char *argv[]) {
     }
 
     // Print the execution time
-    printf("Execution time: %0.6f ms\n", (end_time - start_time) * 1000.0);
+    printf("Num. of Samples: %d\n", num_samples);
+    printf("Execution time: %0.6f ms\n", (end_time - start_time));
 }
