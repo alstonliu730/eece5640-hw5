@@ -1,0 +1,11 @@
+#!/bin/bash
+#SBATCH --verbose
+#SBATCH --nodes=1
+#SBATCH --time=00:30:00
+#SBATCH --job-name=alston_q2
+#SBATCH --gres=gpu:p100:1
+#SBATCH --partition=courses-gpu
+
+./q2 0 > q2a.txt
+
+./q2 1 > q2b.txt
