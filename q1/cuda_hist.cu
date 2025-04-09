@@ -110,6 +110,6 @@ int main(int argc, char**argv) {
     free(h_data);
     free(h_histogram);
 
-    return 1;
+    return 0;
 }   
 
