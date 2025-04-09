@@ -12,6 +12,7 @@
 *.dSYM
 
 *.out
+!q1/q1a_output/*.out
 *.exe
 *.dll
 *.lib

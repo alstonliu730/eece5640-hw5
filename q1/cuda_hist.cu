@@ -16,12 +16,12 @@ __global__ void histogram_kernel(int *data, int *histogram, int n) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx < n) {
-        int bin = data[bin] / bin_size;
+        int bin = data[idx] / bin_size;
         if (bin >= NUM_BINS) {
             bin = NUM_BINS - 1; // Ensure bin index is within bounds
         }
 
-        histogram[idx] = bin;
+        atomicAdd(&histogram[bin], 1); // Increment the histogram bin
     }
 }
 
@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 
     // define host data
     int *h_data = (int *)malloc(size);
-    int *h_histogram = (int *)calloc(num_samples, sizeof(int)); // initialize to 0
+    int *h_histogram = (int *)calloc(NUM_BINS, sizeof(int)); // initialize to 0
 
     // initialize host data
     srand(time(NULL)); // seed in host random number generator
@@ -55,11 +55,11 @@ int main(int argc, char** argv) {
     // define device data
     int *d_data, *d_histogram;
     CUDA_CHECK(cudaMalloc(&d_data, size));
-    CUDA_CHECK(cudaMalloc(&d_histogram, size));
+    CUDA_CHECK(cudaMalloc(&d_histogram, NUM_BINS * sizeof(int)));
 
     // copy data from host to device
     CUDA_CHECK(cudaMemcpy(d_data, h_data, size, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_histogram, h_histogram, size, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_histogram, h_histogram, NUM_BINS * sizeof(int), cudaMemcpyHostToDevice));
 
     // Start benchmarking time
     cudaEvent_t start, stop;
@@ -69,18 +69,13 @@ int main(int argc, char** argv) {
 
     // define block and grid sizes
     int threads = 1024; // number of threads per block
-    int blocks = (num_samples / threads) + 1; // number of blocks
+    int blocks = (num_samples + threads - 1) / threads; // number of blocks
     histogram_kernel<<<blocks, threads>>>(d_data, d_histogram, num_samples);
     CUDA_CHECK(cudaGetLastError()); // check for kernel launch errors
 
     // copy histogram from device to host
-    CUDA_CHECK(cudaMemcpy(h_histogram, d_histogram, size, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(h_histogram, d_histogram, NUM_BINS * sizeof(int), cudaMemcpyDeviceToHost));
 
-    // reduce histogram
-    for(int i = 0; i < num_samples; i++) {
-        int bin = h_histogram[i];
-        h_histogram[bin]++;
-    }
     // Stop benchmarking time
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
@@ -88,6 +83,7 @@ int main(int argc, char** argv) {
     float ms = 0;
     cudaEventElapsedTime(&ms, start, stop);
     printf("Time taken: %f ms\n", ms);
+    printf("Num. of Samples: %d\n", num_samples);
 
     // print histogram
     for (int i = 0; i < NUM_BINS; i++) {
