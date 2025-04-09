@@ -1,10 +1,10 @@
 CC = nvcc
-CFLAGS = -Wall
+NVCC_FLAGS = -O3 -g
 
 TARGET = q2
 
 q2: stencil.cu
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(NVCC_FLAGS) -o $@ $<
 
 clean:
 	rm -f $(TARGET)

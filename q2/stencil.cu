@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
     cudaMalloc((void**)&d_b, size);
 
     // Copy b to device
-    cudaMemcpy(d_b, b, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_b, h_b, size, cudaMemcpyHostToDevice);
 
     // Define grid and block sizes
     dim3 blockSize(TILE_SIZE, TILE_SIZE, TILE_SIZE);
@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
     }
     
     // Copy result back to host
-    cudaMemcpy(a, d_a, size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_a, d_a, size, cudaMemcpyDeviceToHost);
     
     // End Benchmark
     cudaEventRecord(stop);
@@ -158,8 +158,8 @@ int main(int argc, char** argv) {
     cudaFree(d_b);
 
     // Free host memory
-    free(a);
-    free(b);
+    free(h_a);
+    free(h_b);
 
     return 0;
 }
