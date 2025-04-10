@@ -18,7 +18,7 @@ for (int i = 1; i < n-1; i++)
 }       
 */
 
-#define TILE_SIZE 4
+#define TILE_SIZE 8
 
 // untiled stencil code
 __global__ void stencil_naive(float* a, float* b, int n) {

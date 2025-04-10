@@ -1,0 +1,30 @@
+Running Naive implementation with N = 32
+-------------------------
+Running Tiled implementation with N = 32
+-------------------------
+Running Naive implementation with N = 64
+-------------------------
+Running Tiled implementation with N = 64
+-------------------------
+Running Naive implementation with N = 128
+-------------------------
+Running Tiled implementation with N = 128
+-------------------------
+Running Naive implementation with N = 256
+-------------------------
+Running Tiled implementation with N = 256
+-------------------------
+Running Naive implementation with N = 512
+-------------------------
+Running Tiled implementation with N = 512
+-------------------------
+Running Naive implementation with N = 1024
+-------------------------
+Running Tiled implementation with N = 1024
+-------------------------
+Running Naive implementation with N = 2048
+/var/spool/slurmd/job126162/slurm_script: line 10: 249228 Segmentation fault      (core dumped) ~/eece5640-hw5/q2/q2 0 $n &> $OUTPUT
+-------------------------
+Running Tiled implementation with N = 2048
+/var/spool/slurmd/job126162/slurm_script: line 10: 249240 Segmentation fault      (core dumped) ~/eece5640-hw5/q2/q2 1 $n &> $OUTPUT
+-------------------------

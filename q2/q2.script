@@ -6,11 +6,12 @@
 #SBATCH --gres=gpu:p100:1
 #SBATCH --partition=courses-gpu
 
-N = (32 64 128 256 512 1024 2048)
+N=(32 64 128 256 512)
+
 for n in "${N[@]}"; do
     echo "Running Naive implementation with N = $n"
     OUTPUT="./q2_naive/q2a_$n.out"
-    ~/eece5640-hw5/q2/qq2 0 $n &> $OUTPUT
+    ~/eece5640-hw5/q2/q2 0 $n &> $OUTPUT
     echo "-------------------------"
     echo "Running Tiled implementation with N = $n"
     OUTPUT="./q2_tiled/q2b_$n.out"
